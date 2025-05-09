@@ -612,4 +612,8 @@ public class GUI extends JFrame implements ActionListener, MouseListener {
     @Override
     public void mouseExited(MouseEvent e) {
     }
+
+    public static void main(String[] args) {
+        new GUI();
+    }
 }

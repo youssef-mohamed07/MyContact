@@ -6,8 +6,8 @@ import java.sql.SQLException;
 
 public class DBConnection {
     static final String URL = "jdbc:sqlserver://localhost:1433;databaseName=ContactsApp;encrypt=false";
-    static final String USER = "your_username";
-    static final String PASSWORD = "your_password";
+    static final String USER = "";
+    static final String PASSWORD = "";
 
     public static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(URL, USER, PASSWORD);
@@ -24,5 +24,16 @@ public class DBConnection {
             work NVARCHAR(50),
             password NVARCHAR(100)
         );
+
+        CREATE TABLE Contacts (
+            ID INT IDENTITY PRIMARY KEY,
+            FirstName NVARCHAR(50),
+            LastName NVARCHAR(50),
+            Email NVARCHAR(100),
+            MobilePhone NVARCHAR(20),
+            HomePhone NVARCHAR(20),
+            Address NVARCHAR(100)
+        );      
+
     */
 }

@@ -16,23 +16,28 @@ public class DBConnection {
     /*
         CREATE DATABASE ContactsApp;
         USE ContactsApp;
+        
+        -- Users table
         CREATE TABLE Users (
             id INT PRIMARY KEY IDENTITY(1,1),
-            username NVARCHAR(100),
-            email NVARCHAR(100),
+            username NVARCHAR(100) NOT NULL UNIQUE,
+            email NVARCHAR(100) NOT NULL UNIQUE,
             phone NVARCHAR(50),
             work NVARCHAR(50),
-            password NVARCHAR(100)
+            password NVARCHAR(100) NOT NULL
         );
 
+        -- Contacts table with user reference
         CREATE TABLE Contacts (
             ID INT IDENTITY PRIMARY KEY,
-            FirstName NVARCHAR(50),
-            LastName NVARCHAR(50),
-            Email NVARCHAR(100),
-            MobilePhone NVARCHAR(20),
+            FirstName NVARCHAR(50) NOT NULL,
+            LastName NVARCHAR(50) NOT NULL,
+            Email NVARCHAR(100) NOT NULL,
+            MobilePhone NVARCHAR(20) NOT NULL,
             HomePhone NVARCHAR(20),
-            Address NVARCHAR(100)
+            Address NVARCHAR(100),
+            UserId INT NOT NULL,
+            FOREIGN KEY (UserId) REFERENCES Users(id)
         );      
 
     */

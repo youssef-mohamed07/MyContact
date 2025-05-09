@@ -1,6 +1,6 @@
 package com.mycompany.mycontacts;
 
-import javax.swing.*;
+import javax.swing.JOptionPane;
 
 public class Person {
 

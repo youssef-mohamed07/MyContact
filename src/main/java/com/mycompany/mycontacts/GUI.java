@@ -1,12 +1,29 @@
 package com.mycompany.mycontacts;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.List;
+
 import javax.sound.sampled.Clip;
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JToggleButton;
+import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import javax.swing.table.DefaultTableModel;
 
@@ -40,15 +57,33 @@ public class GUI extends JFrame implements ActionListener, MouseListener {
     RoundedPanel topPanel;
     RoundedPanel addPanel;
     JPanel SearchBarPanel;
+    private ContactDAO contactDAO;
+    private UserDAO userDAO;
+    private User currentUser;
+    private int selectedContactId = -1;
 
 
-    GUI() {
+    GUI(User user) {
+        this.currentUser = user;
+        contactDAO = new ContactDAO();
+        userDAO = new UserDAO();
+        
+        // Update user info in side panel
+        label.setText(user.getUsername());
+        label2.setText(user.getPhone());
+        label4.setText(user.getWork());
+        label6.setText(user.getEmail());
+        
         // SidePanel
 
         // ImageIcon
-        ImageIcon person = new ImageIcon("user.png");
-        ImageIcon search = new ImageIcon("search.png");
-        ImageIcon iTitle = new ImageIcon("laptop.png");
+        ImageIcon person = new ImageIcon(getClass().getResource("/user.png"));
+        ImageIcon search = new ImageIcon(getClass().getResource("/search.png"));
+        ImageIcon iTitle = new ImageIcon(getClass().getResource("/laptop.png"));
+
+        if (person.getImage() == null) person = new ImageIcon("user.png");
+        if (search.getImage() == null) search = new ImageIcon("search.png");
+        if (iTitle.getImage() == null) iTitle = new ImageIcon("laptop.png");
 
         // label
         label = new JLabel();
@@ -378,8 +413,30 @@ public class GUI extends JFrame implements ActionListener, MouseListener {
         this.add(topPanel);
         this.add(addPanel);
         this.add(sidePanel);
+
+        // Load contacts from database for current user
+        loadContactsFromDatabase();
+
         this.setVisible(true);
 
+    }
+
+    private void loadContactsFromDatabase() {
+        List<Contacts> contacts = contactDAO.getAllContacts(currentUser.getId());
+        model.setRowCount(0); // Clear existing rows
+        for (Contacts contact : contacts) {
+            String[] row = {
+                contact.getFirstName(),
+                contact.getLastName(),
+                contact.getEmail(),
+                contact.getMobilePhone(),
+                contact.getHomePhone(),
+                contact.getAddress()
+            };
+            model.addRow(row);
+        }
+        count = model.getRowCount();
+        countField.setText(String.valueOf(count));
     }
 
     // Buttons
@@ -402,69 +459,59 @@ public class GUI extends JFrame implements ActionListener, MouseListener {
             }
 
             if (contact.valid) {
-                String fName = contact.getFirstName();
-                String lName = contact.getLastName();
-                String email = contact.getEmail();
-                String mobilePhone = contact.getMobilePhone();
-                String homePhone = contact.getHomePhone();
-                String address = contact.getAddress();
-                String[] row = { fName, lName, email, mobilePhone, homePhone, address };
-                model.addRow(row);
-
-                namefField.setText("");
-                namelField.setText("");
-                emailField.setText("");
-                mobilePhoneField.setText("");
-                homePhoneField.setText("");
-                AddressField.setText("");
-
-                count++;
-                countField.setText(String.valueOf(count));
-
+                if (contactDAO.createContact(contact, currentUser.getId())) {
+                    String[] row = {
+                        contact.getFirstName(),
+                        contact.getLastName(),
+                        contact.getEmail(),
+                        contact.getMobilePhone(),
+                        contact.getHomePhone(),
+                        contact.getAddress()
+                    };
+                    model.addRow(row);
+                    count++;
+                    countField.setText(String.valueOf(count));
+                    clearFields();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Failed to add contact to database", "Error", JOptionPane.ERROR_MESSAGE);
+                }
             }
         }
 
         // clearButton
         if (e.getSource() == clearButton) {
-            namefField.setText("");
-            namelField.setText("");
-            emailField.setText("");
-            mobilePhoneField.setText("");
-            homePhoneField.setText("");
-            AddressField.setText("");
+            clearFields();
         }
 
         // deleteButton
         if (e.getSource() == deleteButton) {
-
             if (table.getSelectedRow() == -1) {
                 JOptionPane.showMessageDialog(null, "Please, Select a contact", "ERROR", JOptionPane.ERROR_MESSAGE);
             } else {
-
                 int num = JOptionPane.showConfirmDialog(null, "Do you want to delete the contact?",
                         "Confirmation message", JOptionPane.YES_NO_OPTION);
                 if (num == 0) {
-                    model.removeRow(table.getSelectedRow());
-                    namefField.setText("");
-                    namelField.setText("");
-                    emailField.setText("");
-                    mobilePhoneField.setText("");
-                    homePhoneField.setText("");
-                    AddressField.setText("");
-                    count--;
-                    countField.setText(String.valueOf(count));
+                    if (contactDAO.deleteContact(selectedContactId, currentUser.getId())) {
+                        model.removeRow(table.getSelectedRow());
+                        count--;
+                        countField.setText(String.valueOf(count));
+                        clearFields();
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Failed to delete contact from database", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
                 }
             }
         }
 
         // updateButton
         if (e.getSource() == updateButton) {
+            if (table.getSelectedRow() == -1) {
+                JOptionPane.showMessageDialog(null, "Please, Select a contact", "ERROR", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
 
             Contacts contact;
             Contacts.valid = true;
-            if (table.getSelectedRow() == -1) {
-                JOptionPane.showMessageDialog(null, "Please, Select a contact", "ERROR", JOptionPane.ERROR_MESSAGE);
-            }
             if (homePhoneField.getText().isEmpty() && AddressField.getText().isEmpty()) {
                 contact = new Contacts(namefField.getText(), namelField.getText(), emailField.getText(),
                         mobilePhoneField.getText());
@@ -477,35 +524,27 @@ public class GUI extends JFrame implements ActionListener, MouseListener {
             }
 
             if (Contacts.valid) {
-                String fName = contact.getFirstName();
-                String lName = contact.getLastName();
-                String email = contact.getEmail();
-                String mobilePhone = contact.getMobilePhone();
-                String homePhone = contact.getHomePhone();
-                String address = contact.getAddress();
-
-                int rowIndex = table.getSelectedRow();
-                model.setValueAt(fName, rowIndex, 0);
-                model.setValueAt(lName, rowIndex, 1);
-                model.setValueAt(email, rowIndex, 2);
-                model.setValueAt(mobilePhone, rowIndex, 3);
-                model.setValueAt(homePhone, rowIndex, 4);
-                model.setValueAt(address, rowIndex, 5);
-                namefField.setText("");
-                namelField.setText("");
-                emailField.setText("");
-                mobilePhoneField.setText("");
-                homePhoneField.setText("");
-                AddressField.setText("");
+                if (contactDAO.updateContact(selectedContactId, contact, currentUser.getId())) {
+                    int rowIndex = table.getSelectedRow();
+                    model.setValueAt(contact.getFirstName(), rowIndex, 0);
+                    model.setValueAt(contact.getLastName(), rowIndex, 1);
+                    model.setValueAt(contact.getEmail(), rowIndex, 2);
+                    model.setValueAt(contact.getMobilePhone(), rowIndex, 3);
+                    model.setValueAt(contact.getHomePhone(), rowIndex, 4);
+                    model.setValueAt(contact.getAddress(), rowIndex, 5);
+                    clearFields();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Failed to update contact in database", "Error", JOptionPane.ERROR_MESSAGE);
+                }
             }
         }
         // editButton
         if (e.getSource() == editButton) {
-            EditPersonal edit = new EditPersonal();
-            edit.nameField.setText(label.getText());
-            edit.phoneField.setText(label2.getText());
-            edit.workField.setText(label4.getText());
-            edit.emailField.setText(label6.getText());
+            EditPersonal edit = new EditPersonal(currentUser);
+            edit.nameField.setText(currentUser.getUsername());
+            edit.phoneField.setText(currentUser.getPhone());
+            edit.workField.setText(currentUser.getWork());
+            edit.emailField.setText(currentUser.getEmail());
         }
 
 
@@ -514,65 +553,57 @@ public class GUI extends JFrame implements ActionListener, MouseListener {
             if (searchlField.getText().trim().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Please enter a search term", "Error", JOptionPane.ERROR_MESSAGE);
             } else {
-
-                if (searchComboBox.getSelectedItem().equals("Name")) {
-                    for (int i = 0; i < count; i++) {
-                        if (model.getValueAt(i, 0).equals(searchlField.getText().trim())) {
-                            validSreach(i);
-                            return;
-                        }
-                    }
+                String searchField = "";
+                switch (searchComboBox.getSelectedItem().toString()) {
+                    case "Name":
+                        searchField = "FirstName";
+                        break;
+                    case "Email":
+                        searchField = "Email";
+                        break;
+                    case "Mobile Phone":
+                        searchField = "MobilePhone";
+                        break;
+                    case "Home Phone":
+                        searchField = "HomePhone";
+                        break;
+                    case "City":
+                        searchField = "Address";
+                        break;
                 }
 
-                else if (searchComboBox.getSelectedItem().equals("Email")) {
-                    for (int i = 0; i < count; i++) {
-                        if (model.getValueAt(i, 2).equals(searchlField.getText().trim())) {
-                            validSreach(i);
-                            return;
-                        }
+                List<Contacts> searchResults = contactDAO.searchContacts(searchField, searchlField.getText().trim(), currentUser.getId());
+                if (!searchResults.isEmpty()) {
+                    model.setRowCount(0);
+                    for (Contacts contact : searchResults) {
+                        String[] row = {
+                            contact.getFirstName(),
+                            contact.getLastName(),
+                            contact.getEmail(),
+                            contact.getMobilePhone(),
+                            contact.getHomePhone(),
+                            contact.getAddress()
+                        };
+                        model.addRow(row);
                     }
+                    JOptionPane.showMessageDialog(this, "Found " + searchResults.size() + " matching contacts",
+                            "Search Results", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(this, "No contacts found matching your search criteria",
+                            "Search Results", JOptionPane.INFORMATION_MESSAGE);
                 }
-
-                else if (searchComboBox.getSelectedItem().equals("Mobile Phone")) {
-                    for (int i = 0; i < count; i++) {
-                        if (model.getValueAt(i, 3).equals(searchlField.getText().trim())) {
-                            validSreach(i);
-                            return;
-                        }
-                    }
-                } else if (searchComboBox.getSelectedItem().equals("Home Phone")) {
-                    for (int i = 0; i < count; i++) {
-                        if (model.getValueAt(i, 4).equals(searchlField.getText().trim())) {
-                            validSreach(i);
-                            return;
-                        }
-                    }
-                } else if (searchComboBox.getSelectedItem().equals("Address")) {
-                    for (int i = 0; i < count; i++) {
-                        if (model.getValueAt(i, 5).equals(searchlField.getText().trim())) {
-                            validSreach(i);
-                            return;
-                        }
-                    }
-                }
-                JOptionPane.showMessageDialog(this,
-                        "Not founded data in the Option : " + searchComboBox.getSelectedItem(), "Not founded !!",
-                        JOptionPane.ERROR_MESSAGE);
             }
         }
     }
 
-    public void validSreach(int i) {
-        table.setRowSelectionInterval(i, i);
-        namefField.setText(model.getValueAt(i, 0) + "");
-        namelField.setText(model.getValueAt(i, 1) + "");
-        emailField.setText(model.getValueAt(i, 2) + "");
-        mobilePhoneField.setText(model.getValueAt(i, 3) + "");
-        homePhoneField.setText(model.getValueAt(i, 4) + "");
-        AddressField.setText(model.getValueAt(i, 5) + "");
-
-        JOptionPane.showMessageDialog(this, "Founded in the " + searchComboBox.getSelectedItem() + " data !!",
-                "Result of your search", JOptionPane.INFORMATION_MESSAGE);
+    private void clearFields() {
+        namefField.setText("");
+        namelField.setText("");
+        emailField.setText("");
+        mobilePhoneField.setText("");
+        homePhoneField.setText("");
+        AddressField.setText("");
+        selectedContactId = -1;
     }
 
     // mouse Selected Row
@@ -580,21 +611,22 @@ public class GUI extends JFrame implements ActionListener, MouseListener {
     @Override
     public void mouseClicked(MouseEvent e) {
         int rowIndex = table.getSelectedRow();
+        if (rowIndex != -1) {
+            selectedContactId = rowIndex + 1; // Assuming ID starts from 1
+            String fName = (String) model.getValueAt(rowIndex, 0);
+            String lName = (String) model.getValueAt(rowIndex, 1);
+            String email = (String) model.getValueAt(rowIndex, 2);
+            String mobilePhone = (String) model.getValueAt(rowIndex, 3);
+            String homePhone = (String) model.getValueAt(rowIndex, 4);
+            String address = (String) model.getValueAt(rowIndex, 5);
 
-        String fName = (String) model.getValueAt(rowIndex, 0);
-        String lName = (String) model.getValueAt(rowIndex, 1);
-        String email = (String) model.getValueAt(rowIndex, 2);
-        String mobilePhone = (String) model.getValueAt(rowIndex, 3);
-        String homePhone = (String) model.getValueAt(rowIndex, 4);
-        String address = (String) model.getValueAt(rowIndex, 5);
-        String Name = (String) model.getValueAt(rowIndex, 0) + " " + (String) model.getValueAt(rowIndex, 1);
-
-        namefField.setText(fName);
-        namelField.setText(lName);
-        emailField.setText(email);
-        mobilePhoneField.setText(mobilePhone);
-        homePhoneField.setText(homePhone);
-        AddressField.setText(address);
+            namefField.setText(fName);
+            namelField.setText(lName);
+            emailField.setText(email);
+            mobilePhoneField.setText(mobilePhone);
+            homePhoneField.setText(homePhone);
+            AddressField.setText(address);
+        }
     }
 
     @Override

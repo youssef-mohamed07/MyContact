@@ -4,6 +4,7 @@ public class Main {
 
     @SuppressWarnings("unused")
     public static void main(String[] args) {
-        Login add = new Login();
+        // Start with the login screen
+        Login login = new Login();
     }
 }

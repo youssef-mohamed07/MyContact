@@ -1,6 +1,6 @@
 package com.mycompany.mycontacts;
 
-import javax.swing.*;
+import javax.swing.JOptionPane;
 
 public class Contacts {
     private String firstName;
@@ -11,29 +11,72 @@ public class Contacts {
     private String address;
     public static boolean valid = true;
 
-    public Contacts(String firstName, String lastName, String email, String mobilePhone, String homePhone,
-            String address) {
-        setFirstName(firstName);
-        setLastName(lastName);
-        setEmail(email);
-        setMobilePhone(mobilePhone);
-        setHomePhone(homePhone);
-        setAddress(address);
+    public Contacts(String firstName, String lastName, String email, String mobilePhone) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.mobilePhone = mobilePhone;
+        this.homePhone = "";
+        this.address = "";
     }
 
     public Contacts(String firstName, String lastName, String email, String mobilePhone, String homePhone) {
-        setFirstName(firstName);
-        setLastName(lastName);
-        setEmail(email);
-        setMobilePhone(mobilePhone);
-        setHomePhone(homePhone);
+        this(firstName, lastName, email, mobilePhone);
+        this.homePhone = homePhone;
+        this.address = "";
     }
 
-    public Contacts(String firstName, String lastName, String email, String mobilePhone) {
-        setFirstName(firstName);
-        setLastName(lastName);
-        setEmail(email);
-        setMobilePhone(mobilePhone);
+    public Contacts(String firstName, String lastName, String email, String mobilePhone, String homePhone, String address) {
+        this(firstName, lastName, email, mobilePhone, homePhone);
+        this.address = address;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getMobilePhone() {
+        return mobilePhone;
+    }
+
+    public void setMobilePhone(String mobilePhone) {
+        this.mobilePhone = mobilePhone;
+    }
+
+    public String getHomePhone() {
+        return homePhone;
+    }
+
+    public void setHomePhone(String homePhone) {
+        this.homePhone = homePhone;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
     }
 
     public void setFirstName(String firstName) {
@@ -58,11 +101,6 @@ public class Contacts {
                 this.firstName = firstName.trim();
             }
         }
-    }
-
-
-    public String getFirstName() {
-        return firstName;
     }
 
     public void setLastName(String lastName) {
@@ -92,11 +130,6 @@ public class Contacts {
     public String getEmail() {
         return email;
     }
-
-    public String getLastName() {
-        return lastName;
-    }
-
 
     public void setEmail(String email) {
         String emailRegex = "^[a-zA-Z0-9_.+-/#/%]{3,15}+@[a-zA-Z]{5}+.[a-zA-Z]{3}+$";

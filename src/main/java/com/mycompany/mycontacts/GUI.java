@@ -60,7 +60,7 @@ public class GUI extends JFrame implements ActionListener, MouseListener {
     private ContactDAO contactDAO;
     private UserDAO userDAO;
     private User currentUser;
-    private int selectedContactId = -1;
+    protected int selectedContactId = -1;
 
 
     GUI(User user) {

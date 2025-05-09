@@ -8,7 +8,7 @@ public class Person {
     private String mobilePhone;
     private String work;
     private String email;
-    boolean valid = true;
+    private boolean valid = true;
 
     public Person(String name, String mobilePhone, String work, String email) {
         setName(name);
@@ -30,31 +30,35 @@ public class Person {
     public Person() {
     }
 
+    public boolean isValid() {
+        return valid;
+    }
+
     public String getName() {
         return name;
     }
 
     public void setName(String name) {
+        boolean localValid = true;
         if (name.isEmpty()) {
             JOptionPane.showMessageDialog(null, "The name cannot be empty", "ERROR", JOptionPane.ERROR_MESSAGE);
-            valid = false;
+            localValid = false;
         } else if (name.length() > 15) {
-            JOptionPane.showMessageDialog(null, "The name cannot be greater than 10 letters", "ERROR",
-                    JOptionPane.ERROR_MESSAGE);
-            valid = false;
+            JOptionPane.showMessageDialog(null, "The name cannot be greater than 15 letters", "ERROR", JOptionPane.ERROR_MESSAGE);
+            localValid = false;
         } else {
             for (char x : name.toCharArray()) {
                 if (!Character.isLetter(x) && x != ' ') {
-                    JOptionPane.showMessageDialog(null, "The name cannot contain numbers or symbols", "ERROR",
-                            JOptionPane.ERROR_MESSAGE);
-                    valid = false;
+                    JOptionPane.showMessageDialog(null, "The name cannot contain numbers or symbols", "ERROR", JOptionPane.ERROR_MESSAGE);
+                    localValid = false;
                     break;
                 }
             }
-            if (valid) {
-                this.name = name;
-            }
         }
+        if (localValid) {
+            this.name = name;
+        }
+        valid = valid && localValid;
     }
 
     public String getMobilePhone() {
@@ -62,30 +66,31 @@ public class Person {
     }
 
     public void setMobilePhone(String mobilePhone) {
+        boolean localValid = true;
+
         if (mobilePhone.isEmpty()) {
             JOptionPane.showMessageDialog(null, "The mobile phone cannot be empty", "ERROR", JOptionPane.ERROR_MESSAGE);
-            valid = false;
+            localValid = false;
         } else if (mobilePhone.trim().length() != 11) {
-            JOptionPane.showMessageDialog(null, "The mobile phone must be 11 number", "ERROR",
-                    JOptionPane.ERROR_MESSAGE);
-            valid = false;
-        } else if (!mobilePhone.startsWith("010") && !mobilePhone.startsWith("011") && !mobilePhone.startsWith("012")
-                && !mobilePhone.startsWith("015")) {
-            JOptionPane.showMessageDialog(null, "The email can not be empty", "ERROR", JOptionPane.ERROR_MESSAGE);
-            System.out.println("This number is not an egyptian number so it is invalid");
-            valid = false;
+            JOptionPane.showMessageDialog(null, "The mobile phone must be 11 digits", "ERROR", JOptionPane.ERROR_MESSAGE);
+            localValid = false;
+        } else if (!mobilePhone.startsWith("010") && !mobilePhone.startsWith("011") && !mobilePhone.startsWith("012") && !mobilePhone.startsWith("015")) {
+            JOptionPane.showMessageDialog(null, "The mobile phone must start with 010, 011, 012, or 015", "ERROR", JOptionPane.ERROR_MESSAGE);
+            localValid = false;
         }
+
         for (char x : mobilePhone.toCharArray()) {
             if (!Character.isDigit(x)) {
-                JOptionPane.showMessageDialog(null, "The mobile phone cannot be Symbols or letter", "ERROR",
-                        JOptionPane.ERROR_MESSAGE);
-                valid = false;
+                JOptionPane.showMessageDialog(null, "The mobile phone cannot contain letters or symbols", "ERROR", JOptionPane.ERROR_MESSAGE);
+                localValid = false;
                 break;
             }
         }
-        if (valid) {
+
+        if (localValid) {
             this.mobilePhone = mobilePhone.trim();
         }
+        valid = valid && localValid;
     }
 
     public String getWork() {
@@ -93,26 +98,28 @@ public class Person {
     }
 
     public void setWork(String work) {
+        boolean localValid = true;
 
         if (work.isEmpty()) {
             JOptionPane.showMessageDialog(null, "The work phone cannot be empty", "ERROR", JOptionPane.ERROR_MESSAGE);
-            valid = false;
-        } else if (work.trim().length() <= 5 && work.trim().length() >= 11) {
-            JOptionPane.showMessageDialog(null, "The work phone invalid", "ERROR", JOptionPane.ERROR_MESSAGE);
-            valid = false;
+            localValid = false;
+        } else if (work.trim().length() < 6 || work.trim().length() > 10) {
+            JOptionPane.showMessageDialog(null, "The work phone is invalid", "ERROR", JOptionPane.ERROR_MESSAGE);
+            localValid = false;
         }
 
         for (char x : work.toCharArray()) {
             if (!Character.isDigit(x)) {
-                JOptionPane.showMessageDialog(null, "The home phone cannot be Symbols or letter", "ERROR",
-                        JOptionPane.ERROR_MESSAGE);
-                valid = false;
+                JOptionPane.showMessageDialog(null, "The work phone cannot contain letters or symbols", "ERROR", JOptionPane.ERROR_MESSAGE);
+                localValid = false;
                 break;
             }
         }
-        if (valid) {
+
+        if (localValid) {
             this.work = work.trim();
         }
+        valid = valid && localValid;
     }
 
     public String getEmail() {
@@ -120,16 +127,20 @@ public class Person {
     }
 
     public void setEmail(String email) {
-        String emailRegex = "^[a-zA-Z0-9_.+-/#/%{3,15}]+@[a-zA-Z]{5}+.[a-zA-Z]{3}+$";
+        boolean localValid = true;
+
+        String emailRegex = "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z]{2,6}$";
 
         if (email.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(null, "The email can not be empty", "ERROR", JOptionPane.ERROR_MESSAGE);
-            valid = false;
-        } else if (email.matches(emailRegex)) {
-            this.email = email.trim();
+            JOptionPane.showMessageDialog(null, "The email cannot be empty", "ERROR", JOptionPane.ERROR_MESSAGE);
+            localValid = false;
+        } else if (!email.matches(emailRegex)) {
+            JOptionPane.showMessageDialog(null, "The email is invalid", "ERROR", JOptionPane.ERROR_MESSAGE);
+            localValid = false;
         } else {
-            JOptionPane.showMessageDialog(null, "The Email is invalid", "ERROR", JOptionPane.ERROR_MESSAGE);
-            valid = false;
+            this.email = email.trim();
         }
+
+        valid = valid && localValid;
     }
 }

@@ -136,7 +136,7 @@ public class EditPersonal extends JFrame implements ActionListener {
             person.setMobilePhone(phoneField.getText());
             person.setWork(workField.getText());
 
-            if (person.valid) {
+            if (person.isValid()) {
                 String Name = person.getName();
                 String email = person.getEmail();
                 String mobilePhone = person.getMobilePhone();
